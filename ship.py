@@ -7,10 +7,12 @@ class Ship():
         self.screen = screen
         self.ai_settings = ai_settings
 
+        # создание внешнего вида карабля и вычесление размеров экрана и карабля
         self.image = pygame.transform.scale((pygame.image.load('textures/rocket2_128p.png')), (64,64))
         self.rect = self.image.get_rect()
         self.screen_rect = screen.get_rect()
 
+        # Позиционирование корабля по центру снизу экрана
         self.rect.centerx = self.screen_rect.centerx
         self.rect.bottom = self.screen_rect.bottom - 10
 
@@ -18,6 +20,11 @@ class Ship():
 
         self.moving_right = False
         self.moving_left = False
+
+
+    def center_ship(self):#!!!!!!
+        '''размещение корабля в стартовую позицию'''
+        self.center = self.screen_rect.centerx
 
 
     def update(self):

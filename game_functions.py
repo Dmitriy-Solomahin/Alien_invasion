@@ -2,6 +2,7 @@ import sys
 import pygame
 from bullet import Bullet
 from alien import Alien
+from time import sleep
 
 
 # группа функций работы с вводом данных
@@ -22,17 +23,32 @@ def check_event_key(event, ship, ai_settings, screen, bullets, result):
         fire_bullet(ship, ai_settings, screen, bullets)
 
 
-def check_events(ship, ai_settings, screen, bullets):
+def check_events(ai_settings, screen, ship, bullets, stats, aliens, play_button):
     '''отслеживание событий клавиатуры и мыши'''
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
             check_events_k(event, ship, ai_settings, screen, bullets)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            check_play_button(ai_settings, screen, ship, bullets,
+                            stats, aliens, play_button, mouse_x, mouse_y)
+
+
+def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, play_button, mouse_x, mouse_y):
+    '''Запускает новую игру при нажатии кнопки Play'''
+    button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked and not stats.game_active:
+        pygame.mouse.set_visible(False)#скрывает указатель мыши
+        stats.reset_stats()
+        stats.game_active = True
+        
+        game_restart(ai_settings, screen, ship, bullets, aliens)
 
 
 # функции отрисовки
-def update_screen(ai_settings, screen, ship, bullets, aliens):
+def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button):
     '''обновляет отрисовку экрана и объектов'''
     # перерисовка экрана
     screen.fill(ai_settings.bg_color)
@@ -42,17 +58,38 @@ def update_screen(ai_settings, screen, ship, bullets, aliens):
     ship.blitme()
     aliens.draw(screen)
 
+    if not stats.game_active:
+        play_button.draw_button()
+
     # Отображение последних событий на экране
     pygame.display.flip()
 
 
-def update_bullets(bullets):
+def update_bullets(bullets, aliens, ai_settings, screen, ship):
     '''обновление позиции пуль и удаление старых'''
     bullets.update()
 
     for bullet in bullets.copy():
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
+    check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship)
+
+
+def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship):
+    '''Обработка колизий пуль с пришельцами'''
+    # Проверка попадания в пришельцев
+    # При обнаружении попадания удалить пулю и пришельца
+    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    
+    if len(aliens) == 0:
+        filling_fleet(ai_settings, screen, aliens, ship, bullets)
+
+
+def filling_fleet(ai_settings, screen, aliens, ship, bullets):
+    '''Вызов подкрепления'''
+    # Уничтожение оставшихся пуль и создание нового флота
+    bullets.empty()
+    create_fleet(ai_settings, screen, aliens, ship)
 
 
 # игровые механики
@@ -112,7 +149,43 @@ def change_fleet_direction(ai_settings, aliens):
     ai_settings.fleet_direction *= -1
 
 
-def update_alinse(ai_settings, aliens):
+def ship_hit(ai_settings, screen, ship, bullets, aliens, stats):
+    '''Обрабатывает столкновение карабля с пришельцем'''
+    if stats.ships_left > 0:
+        stats.ships_left -= 1
+        game_restart(ai_settings, screen, ship, bullets, aliens)
+    else:
+        stats.game_active = False
+        pygame.mouse.set_visible(True)
+
+
+def game_restart(ai_settings, screen, ship, bullets, aliens):
+    '''Подготовка игры к старту'''
+    # отчиска поля
+    aliens.empty()
+    bullets.empty()
+    # востановление корабля в стартовой точке и создаёт флот заново
+    create_fleet(ai_settings, screen, aliens, ship)
+    ship.center_ship()
+    # пауза
+    sleep(0.5)
+
+
+def check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats):
+    '''проверка достиг ли пришелец низа экрана'''
+    screen_rect = screen.get_rect()
+    for alien in aliens.sprites():
+        if alien.rect.bottom >= screen_rect.bottom:
+            ship_hit(ai_settings, screen, ship, bullets, aliens, stats)
+            break
+
+
+def update_alinse(ai_settings, screen, ship, bullets, aliens, stats):
     '''обновление позиции всех пришельцев во флоте'''
     check_fleet_edges(ai_settings, aliens)
     aliens.update()
+    
+    if pygame.sprite.spritecollideany(ship,aliens):
+        ship_hit(ai_settings, screen, ship, bullets, aliens, stats)
+
+    check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats)
