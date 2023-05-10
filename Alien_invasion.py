@@ -5,6 +5,7 @@ from settiings import Settings
 from ship import Ship
 from game_stats import GameStats
 from button import Button
+from scoreboard import Scoreboard
 
 
 def run_game():
@@ -17,6 +18,7 @@ def run_game():
     play_button = Button(ai_settings, screen, 'Play')
     
     stats = GameStats(ai_settings)
+    sb = Scoreboard(ai_settings, screen, stats)
 
     ship = Ship(ai_settings, screen)
     bullets = Group()
@@ -29,9 +31,10 @@ def run_game():
         gf.check_events(ai_settings, screen, ship, bullets, stats, aliens, play_button)
         if stats.game_active:
             ship.update()
-            gf.update_bullets(bullets, aliens, ai_settings, screen, ship)
+            gf.update_bullets(bullets, aliens, ai_settings,
+                                screen, ship, stats, sb)
             gf.update_alinse(ai_settings, screen, ship, bullets, aliens, stats)
-        gf.update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button)
+        gf.update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button, sb)
 
 
 run_game()

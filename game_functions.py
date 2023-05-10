@@ -49,7 +49,7 @@ def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, play_bu
 
 
 # функции отрисовки
-def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button):
+def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button, sb):
     '''обновляет отрисовку экрана и объектов'''
     # перерисовка экрана
     screen.fill(ai_settings.bg_color)
@@ -58,6 +58,8 @@ def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button
         bullet.draw_bullet()
     ship.blitme()
     aliens.draw(screen)
+    
+    sb.show_score()
 
     if not stats.game_active:
         play_button.draw_button()
@@ -66,24 +68,37 @@ def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button
     pygame.display.flip()
 
 
-def update_bullets(bullets, aliens, ai_settings, screen, ship):
+def update_bullets(bullets, aliens, ai_settings, screen, ship, stats, sb):
     '''обновление позиции пуль и удаление старых'''
     bullets.update()
 
     for bullet in bullets.copy():
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
-    check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship)
+    check_bullets_alien_collisions(
+        bullets, aliens, ai_settings, screen, ship, stats, sb)
 
 
-def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship):
+def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship, stats, sb):
     '''Обработка колизий пуль с пришельцами'''
     # Проверка попадания в пришельцев
     # При обнаружении попадания удалить пулю и пришельца
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    if collisions:
+        for aliens in collisions.values():
+            stats.score += ai_settings.alien_points * len(aliens)
+        sb.prep_score()
+        check_high_score(stats, sb)
 
     if len(aliens) == 0:
         filling_fleet(ai_settings, screen, aliens, ship, bullets)
+
+
+def check_high_score(stats, sb):
+    '''Проверяет обновление рекорда'''
+    if stats.score > stats.high_score:
+        stats.high_score = stats.score
+        sb.prep_high_score()
 
 
 def filling_fleet(ai_settings, screen, aliens, ship, bullets):
