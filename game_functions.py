@@ -40,10 +40,11 @@ def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, play_bu
     '''Запускает новую игру при нажатии кнопки Play'''
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and not stats.game_active:
-        pygame.mouse.set_visible(False)#скрывает указатель мыши
+        ai_settings.initialize_dynamic_settings() # сброс динамических настроек
+        pygame.mouse.set_visible(False)  # скрывает указатель мыши
         stats.reset_stats()
         stats.game_active = True
-        
+
         game_restart(ai_settings, screen, ship, bullets, aliens)
 
 
@@ -80,15 +81,16 @@ def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship):
     # Проверка попадания в пришельцев
     # При обнаружении попадания удалить пулю и пришельца
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
-    
+
     if len(aliens) == 0:
         filling_fleet(ai_settings, screen, aliens, ship, bullets)
 
 
 def filling_fleet(ai_settings, screen, aliens, ship, bullets):
     '''Вызов подкрепления'''
-    # Уничтожение оставшихся пуль и создание нового флота
+    # Уничтожение оставшихся пуль и создание нового флота ускоряя его
     bullets.empty()
+    ai_settings.increase_speed()
     create_fleet(ai_settings, screen, aliens, ship)
 
 
@@ -109,7 +111,8 @@ def get_number_aliens_x(ai_settings, alien_width) -> int:
 
 def get_number_rows(ai_settinggs, ship_height, alien_height):
     '''определение количество рядов,помещающихся на экран'''
-    available_space_y = (ai_settinggs.screen_height - (3 * alien_height) - ship_height)
+    available_space_y = (ai_settinggs.screen_height -
+                         (3 * alien_height) - ship_height)
     number_rows = int(available_space_y / (2*alien_height))
     return number_rows
 
@@ -128,7 +131,8 @@ def create_fleet(ai_settings, screen, aliens, ship):
     '''Создание флота противника'''
     alien = Alien(ai_settings, screen)
     number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
-    number_rows = get_number_rows(ai_settings, ship.rect.height, alien.rect.height)
+    number_rows = get_number_rows(
+        ai_settings, ship.rect.height, alien.rect.height)
     for row_number in range(number_rows):
         for aline_number in range(number_aliens_x):
             create_alien(ai_settings, screen, aliens, aline_number, row_number)
@@ -184,8 +188,8 @@ def update_alinse(ai_settings, screen, ship, bullets, aliens, stats):
     '''обновление позиции всех пришельцев во флоте'''
     check_fleet_edges(ai_settings, aliens)
     aliens.update()
-    
-    if pygame.sprite.spritecollideany(ship,aliens):
+
+    if pygame.sprite.spritecollideany(ship, aliens):
         ship_hit(ai_settings, screen, ship, bullets, aliens, stats)
 
     check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats)
