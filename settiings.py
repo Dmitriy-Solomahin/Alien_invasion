@@ -16,7 +16,7 @@ class Settings():
         self.ship_limit = 3
 
         # настройки пули
-        self.bullet_wigth = 3
+        self.bullet_wigth = 3000
         self.bullet_height = 15
         self.bullet_color = 255, 250, 205
         self.bullets_allowed = 5
@@ -36,7 +36,7 @@ class Settings():
         '''Инициализация настроек, изменяемых в ходе игры'''
         self.ship_speed_factor = 1.5
         self.bullet_speed_factor = 2
-        self.alien_speed_factor = 10
+        self.alien_speed_factor = 1
         self.fleet_direction = 1 # направление движения флота 1 вправо -1 влево
         
         # подсчёт очков

@@ -23,7 +23,7 @@ def check_event_key(event, ship, ai_settings, screen, bullets, result):
         fire_bullet(ship, ai_settings, screen, bullets)
 
 
-def check_events(ai_settings, screen, ship, bullets, stats, aliens, play_button):
+def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button):
     '''отслеживание событий клавиатуры и мыши'''
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -33,17 +33,21 @@ def check_events(ai_settings, screen, ship, bullets, stats, aliens, play_button)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             check_play_button(ai_settings, screen, ship, bullets,
-                            stats, aliens, play_button, mouse_x, mouse_y)
+                            stats, aliens, sb, play_button, mouse_x, mouse_y)
 
 
-def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, play_button, mouse_x, mouse_y):
+def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button, mouse_x, mouse_y):
     '''Запускает новую игру при нажатии кнопки Play'''
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and not stats.game_active:
-        ai_settings.initialize_dynamic_settings() # сброс динамических настроек
+        ai_settings.initialize_dynamic_settings() # сброс игровой статистики
         pygame.mouse.set_visible(False)  # скрывает указатель мыши
         stats.reset_stats()
         stats.game_active = True
+        sb.prep_score()
+        sb.prep_high_score()
+        sb.prep_level()
+        sb.prep_ships()
 
         game_restart(ai_settings, screen, ship, bullets, aliens)
 
@@ -91,7 +95,7 @@ def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship, s
         check_high_score(stats, sb)
 
     if len(aliens) == 0:
-        filling_fleet(ai_settings, screen, aliens, ship, bullets)
+        filling_fleet(ai_settings, screen, aliens, ship, bullets, stats, sb)
 
 
 def check_high_score(stats, sb):
@@ -101,11 +105,15 @@ def check_high_score(stats, sb):
         sb.prep_high_score()
 
 
-def filling_fleet(ai_settings, screen, aliens, ship, bullets):
+def filling_fleet(ai_settings, screen, aliens, ship, bullets, stats, sb):
     '''Вызов подкрепления'''
     # Уничтожение оставшихся пуль и создание нового флота ускоряя его
     bullets.empty()
     ai_settings.increase_speed()
+    # увеличивает уровень
+    stats.level += 1
+    sb.prep_level()
+    
     create_fleet(ai_settings, screen, aliens, ship)
 
 
@@ -168,10 +176,11 @@ def change_fleet_direction(ai_settings, aliens):
     ai_settings.fleet_direction *= -1
 
 
-def ship_hit(ai_settings, screen, ship, bullets, aliens, stats):
+def ship_hit(ai_settings, screen, ship, bullets, aliens, stats, sb):
     '''Обрабатывает столкновение карабля с пришельцем'''
     if stats.ships_left > 0:
         stats.ships_left -= 1
+        sb.prep_ships()
         game_restart(ai_settings, screen, ship, bullets, aliens)
     else:
         stats.game_active = False
@@ -190,21 +199,21 @@ def game_restart(ai_settings, screen, ship, bullets, aliens):
     sleep(0.5)
 
 
-def check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats):
+def check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats, sb):
     '''проверка достиг ли пришелец низа экрана'''
     screen_rect = screen.get_rect()
     for alien in aliens.sprites():
         if alien.rect.bottom >= screen_rect.bottom:
-            ship_hit(ai_settings, screen, ship, bullets, aliens, stats)
+            ship_hit(ai_settings, screen, ship, bullets, aliens, stats, sb)
             break
 
 
-def update_alinse(ai_settings, screen, ship, bullets, aliens, stats):
+def update_alinse(ai_settings, screen, ship, bullets, aliens, stats, sb):
     '''обновление позиции всех пришельцев во флоте'''
     check_fleet_edges(ai_settings, aliens)
     aliens.update()
 
     if pygame.sprite.spritecollideany(ship, aliens):
-        ship_hit(ai_settings, screen, ship, bullets, aliens, stats)
+        ship_hit(ai_settings, screen, ship, bullets, aliens, stats, sb)
 
-    check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats)
+    check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats, sb)

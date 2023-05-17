@@ -20,7 +20,7 @@ def run_game():
     stats = GameStats(ai_settings)
     sb = Scoreboard(ai_settings, screen, stats)
 
-    ship = Ship(ai_settings, screen)
+    ship = Ship(ai_settings, screen, (64,64))
     bullets = Group()
     aliens = Group()
 
@@ -28,12 +28,12 @@ def run_game():
 
     # запеск основного процесса игы
     while True:
-        gf.check_events(ai_settings, screen, ship, bullets, stats, aliens, play_button)
+        gf.check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button)
         if stats.game_active:
             ship.update()
             gf.update_bullets(bullets, aliens, ai_settings,
                                 screen, ship, stats, sb)
-            gf.update_alinse(ai_settings, screen, ship, bullets, aliens, stats)
+            gf.update_alinse(ai_settings, screen, ship, bullets, aliens, stats, sb)
         gf.update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button, sb)
 
 
