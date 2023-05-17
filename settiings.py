@@ -3,20 +3,26 @@ import pygame
 
 class Settings():
 
-    def __init__(self):
+    def __init__(self, screen):
         '''Инициализирует статические настройки игры'''
         # настройки экрана
         self.screen_width = 1200
         self.screen_height = 800
+        self.screen = screen
+        self.screen_rect = screen.get_rect()
+        self.height_multiplier = self.screen_rect.height / self.screen_height
+        self.width_multiplier = self.screen_rect.width / self.screen_width
+        self.active_screen_w = self.screen_width * self.width_multiplier
+        self.active_screen_h = self.screen_height * self.height_multiplier
         self.bg_image = pygame.transform.scale((pygame.image.load(
-            "textures/bg.jpg")), (self.screen_width, self.screen_height))
+            "textures/bg.jpg")), (self.screen_rect.width, self.screen_rect.height))
         self.bg_color = (106, 90, 205)
 
         # настройки карабля
         self.ship_limit = 3
 
         # настройки пули
-        self.bullet_wigth = 3000
+        self.bullet_wigth = 3
         self.bullet_height = 15
         self.bullet_color = 255, 250, 205
         self.bullets_allowed = 5
@@ -50,3 +56,6 @@ class Settings():
         self.alien_speed_factor *= self.speedup_scale
         
         self.alien_points = int(self.alien_points * self.score_scale)
+
+    def get_multiplier(self):
+        return (self.width_multiplier, self.height_multiplier)

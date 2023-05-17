@@ -11,8 +11,9 @@ from scoreboard import Scoreboard
 def run_game():
     # инициализация игры и создание экрана
     pygame.init()
-    ai_settings = Settings()
-    screen = pygame.display.set_mode((ai_settings.screen_width, ai_settings.screen_height))
+    screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+    
+    ai_settings = Settings(screen)
     pygame.display.set_caption("Alien Invasion")
     
     play_button = Button(ai_settings, screen, 'Play')

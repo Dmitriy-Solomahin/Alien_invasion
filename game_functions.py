@@ -5,7 +5,7 @@ from alien import Alien
 from time import sleep
 
 
-# группа функций работы с вводом данных
+# РАБОТА С ВВЕДЁННЫМИ ДАННЫМИ
 def check_events_k(event, ship, ai_settings, screen, bullets):
     '''Реагирует на нажатие и отпускание клавиш'''
     if event.type == pygame.KEYDOWN:
@@ -26,7 +26,7 @@ def check_event_key(event, ship, ai_settings, screen, bullets, result):
 def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button):
     '''отслеживание событий клавиатуры и мыши'''
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             sys.exit()
         elif event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
             check_events_k(event, ship, ai_settings, screen, bullets)
@@ -35,7 +35,7 @@ def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, play_but
             check_play_button(ai_settings, screen, ship, bullets,
                             stats, aliens, sb, play_button, mouse_x, mouse_y)
 
-
+# РАБОТА С КНОПКАМИ
 def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button, mouse_x, mouse_y):
     '''Запускает новую игру при нажатии кнопки Play'''
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
@@ -52,7 +52,7 @@ def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, pla
         game_restart(ai_settings, screen, ship, bullets, aliens)
 
 
-# функции отрисовки
+# ФУНКЦИИ ОТРИСОВКИ
 def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button, sb):
     '''обновляет отрисовку экрана и объектов'''
     # перерисовка экрана
@@ -72,6 +72,21 @@ def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button
     pygame.display.flip()
 
 
+def check_high_score(stats, sb):
+    '''Проверяет обновление рекорда'''
+    if stats.score > stats.high_score:
+        stats.high_score = stats.score
+        sb.prep_high_score()
+
+
+
+# РАБОТА СО СНАРЯДАМИ
+def fire_bullet(ship, ai_settings, screen, bullets):
+    '''выпускать пулю если максимум ещё не достигнут'''
+    if len(bullets) < ai_settings.bullets_allowed:
+        new_bullet = Bullet(ai_settings, screen, ship)
+        bullets.add(new_bullet)
+
 def update_bullets(bullets, aliens, ai_settings, screen, ship, stats, sb):
     '''обновление позиции пуль и удаление старых'''
     bullets.update()
@@ -83,6 +98,7 @@ def update_bullets(bullets, aliens, ai_settings, screen, ship, stats, sb):
         bullets, aliens, ai_settings, screen, ship, stats, sb)
 
 
+# ОБРАБОТКА КОЛИЗИЙ
 def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship, stats, sb):
     '''Обработка колизий пуль с пришельцами'''
     # Проверка попадания в пришельцев
@@ -93,53 +109,39 @@ def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship, s
             stats.score += ai_settings.alien_points * len(aliens)
         sb.prep_score()
         check_high_score(stats, sb)
-
     if len(aliens) == 0:
         filling_fleet(ai_settings, screen, aliens, ship, bullets, stats, sb)
 
 
-def check_high_score(stats, sb):
-    '''Проверяет обновление рекорда'''
-    if stats.score > stats.high_score:
-        stats.high_score = stats.score
-        sb.prep_high_score()
+def ship_hit(ai_settings, screen, ship, bullets, aliens, stats, sb):
+    '''Обрабатывает столкновение карабля с пришельцем'''
+    if stats.ships_left > 0:
+        stats.ships_left -= 1
+        sb.prep_ships()
+        game_restart(ai_settings, screen, ship, bullets, aliens)
+    else:
+        stats.game_active = False
+        pygame.mouse.set_visible(True)
 
 
-def filling_fleet(ai_settings, screen, aliens, ship, bullets, stats, sb):
-    '''Вызов подкрепления'''
-    # Уничтожение оставшихся пуль и создание нового флота ускоряя его
-    bullets.empty()
-    ai_settings.increase_speed()
-    # увеличивает уровень
-    stats.level += 1
-    sb.prep_level()
-    
-    create_fleet(ai_settings, screen, aliens, ship)
+# РАБОТА С ПРОТИВНИКОМ
 
-
-# игровые механики
-def fire_bullet(ship, ai_settings, screen, bullets):
-    '''выпускать пулю если максимум ещё не достигнут'''
-    if len(bullets) < ai_settings.bullets_allowed:
-        new_bullet = Bullet(ai_settings, screen, ship)
-        bullets.add(new_bullet)
-
-
+# расчет числа пришельцев
 def get_number_aliens_x(ai_settings, alien_width) -> int:
     '''вычисление пришельцев в ряду'''
-    available_space_x = ai_settings.screen_width - 2 * alien_width
+    available_space_x = ai_settings.active_screen_w - 2 * alien_width
     number_aliens_x = int(available_space_x / (2 * alien_width))
     return number_aliens_x
 
 
 def get_number_rows(ai_settinggs, ship_height, alien_height):
     '''определение количество рядов,помещающихся на экран'''
-    available_space_y = (ai_settinggs.screen_height -
+    available_space_y = (ai_settinggs.active_screen_h -
                          (3 * alien_height) - ship_height)
     number_rows = int(available_space_y / (2*alien_height))
     return number_rows
 
-
+# добавление пришельцев
 def create_alien(ai_settings, screen, aliens, aline_number, row_number):
     '''Создает пришельца и размещает его в ряду'''
     alien = Alien(ai_settings, screen)
@@ -161,6 +163,19 @@ def create_fleet(ai_settings, screen, aliens, ship):
             create_alien(ai_settings, screen, aliens, aline_number, row_number)
 
 
+def filling_fleet(ai_settings, screen, aliens, ship, bullets, stats, sb):
+    '''Вызов подкрепления'''
+    # Уничтожение оставшихся пуль и создание нового флота ускоряя его
+    bullets.empty()
+    ai_settings.increase_speed()
+    # увеличивает уровень
+    stats.level += 1
+    sb.prep_level()
+    
+    create_fleet(ai_settings, screen, aliens, ship)
+
+
+# движение противника
 def check_fleet_edges(ai_settings, aliens):
     '''проверяет достиг ли кто либо из пришелецев края экрана'''
     for alien in aliens.sprites():
@@ -174,29 +189,6 @@ def change_fleet_direction(ai_settings, aliens):
     for alien in aliens.sprites():
         alien.rect.y += ai_settings.fleet_drop_speed
     ai_settings.fleet_direction *= -1
-
-
-def ship_hit(ai_settings, screen, ship, bullets, aliens, stats, sb):
-    '''Обрабатывает столкновение карабля с пришельцем'''
-    if stats.ships_left > 0:
-        stats.ships_left -= 1
-        sb.prep_ships()
-        game_restart(ai_settings, screen, ship, bullets, aliens)
-    else:
-        stats.game_active = False
-        pygame.mouse.set_visible(True)
-
-
-def game_restart(ai_settings, screen, ship, bullets, aliens):
-    '''Подготовка игры к старту'''
-    # отчиска поля
-    aliens.empty()
-    bullets.empty()
-    # востановление корабля в стартовой точке и создаёт флот заново
-    create_fleet(ai_settings, screen, aliens, ship)
-    ship.center_ship()
-    # пауза
-    sleep(0.5)
 
 
 def check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats, sb):
@@ -217,3 +209,16 @@ def update_alinse(ai_settings, screen, ship, bullets, aliens, stats, sb):
         ship_hit(ai_settings, screen, ship, bullets, aliens, stats, sb)
 
     check_aliens_bottom(ai_settings, screen, ship, bullets, aliens, stats, sb)
+
+
+# ОБЩЕИГРОВЫЕ ФУНКЦИИ
+def game_restart(ai_settings, screen, ship, bullets, aliens):
+    '''Подготовка игры к старту'''
+    # отчиска поля
+    aliens.empty()
+    bullets.empty()
+    # востановление корабля в стартовой точке и создаёт флот заново
+    create_fleet(ai_settings, screen, aliens, ship)
+    ship.center_ship()
+    # пауза
+    sleep(0.5)

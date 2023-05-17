@@ -7,10 +7,12 @@ class Ship(Sprite):
         super().__init__()
         self.screen = screen
         self.ai_settings = ai_settings
-        self.size = size
+        self.screen_multiplier = ai_settings.get_multiplier()
+        self.size = (size[0] * self.screen_multiplier[0], size[1] * self.screen_multiplier[1])
 
         # создание внешнего вида карабля и вычесление размеров экрана и карабля
-        self.image = pygame.transform.scale((pygame.image.load('textures/rocket2_128p.png')), self.size)
+        self.image = pygame.transform.scale((pygame.image.load(
+            'textures/rocket2_128p.png')), self.size)
         self.rect = self.image.get_rect()
         self.screen_rect = screen.get_rect()
 

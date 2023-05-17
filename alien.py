@@ -11,9 +11,12 @@ class Alien(Sprite):
         super().__init__()
         self.ai_settings = ai_settings
         self.screen = screen
+        self.screen_multiplier = ai_settings.get_multiplier()
+        self.size = (64 * self.screen_multiplier[0],
+                     64 * self.screen_multiplier[1])
 
         self.image = pygame.transform.scale((pygame.image.load(
-            'textures/Enemy1_128p.png')), (64,64))
+            'textures/Enemy1_128p.png')), self.size)
         self.rect = self.image.get_rect()
 
         self.rect.x = self.rect.width
