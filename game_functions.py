@@ -23,27 +23,41 @@ def check_event_key(event, ship, ai_settings, screen, bullets, result):
         fire_bullet(ship, ai_settings, screen, bullets)
 
 
-def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button):
+def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, main_menu, menu):
     '''отслеживание событий клавиатуры и мыши'''
     for event in pygame.event.get():
-        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+        if event.type == pygame.QUIT:
             sys.exit()
-        elif event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and stats.game_active and not stats.game_PAUSE:
+            stats.game_PAUSE = True
+            pygame.mouse.set_visible(True)
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and stats.game_active and stats.game_PAUSE:
+            stats.game_PAUSE = False
+            pygame.mouse.set_visible(False)
+        elif (event.type == pygame.KEYDOWN or event.type == pygame.KEYUP) and stats.game_active:
             check_events_k(event, ship, ai_settings, screen, bullets)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             check_play_button(ai_settings, screen, ship, bullets,
-                            stats, aliens, sb, play_button, mouse_x, mouse_y)
+                            stats, aliens, sb, main_menu, menu, mouse_x, mouse_y)
+            check_exit_button(stats, main_menu, mouse_x, mouse_y)
+            check_main_menu_button(stats, menu, mouse_x, mouse_y)
+            check_resume_button(stats, menu, mouse_x, mouse_y)
 
 # РАБОТА С КНОПКАМИ
-def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button, mouse_x, mouse_y):
+
+
+def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, main_menu, menu, mouse_x, mouse_y):
     '''Запускает новую игру при нажатии кнопки Play'''
-    button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
-    if button_clicked and not stats.game_active:
+    button_clicked = main_menu.play_button.rect.collidepoint(mouse_x, mouse_y)
+    button_pause_clicked = menu.restart_button.rect.collidepoint(
+        mouse_x, mouse_y)
+    if (button_clicked and not stats.game_active) or (button_pause_clicked and stats.game_PAUSE):
         ai_settings.initialize_dynamic_settings() # сброс игровой статистики
         pygame.mouse.set_visible(False)  # скрывает указатель мыши
         stats.reset_stats()
         stats.game_active = True
+        stats.game_PAUSE = False
         sb.prep_score()
         sb.prep_high_score()
         sb.prep_level()
@@ -52,21 +66,45 @@ def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, pla
         game_restart(ai_settings, screen, ship, bullets, aliens)
 
 
+def check_exit_button(stats, menu, mouse_x, mouse_y):
+    '''Выход из игры если нажата кнопка Exit'''
+    button_clicked = menu.exit_button.rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked and not stats.game_active:
+        sys.exit()
+
+
+def check_main_menu_button(stats, menu, mouse_x, mouse_y):
+    button_clicked = menu.exit_menu_button.rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked and stats.game_PAUSE:
+        stats.game_PAUSE = False
+        stats.game_active = False
+
+
+def check_resume_button(stats, menu, mouse_x, mouse_y):
+    button_clicked = menu.resume_button.rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked and stats.game_PAUSE:
+        stats.game_PAUSE = False
+
+
 # ФУНКЦИИ ОТРИСОВКИ
-def update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button, sb):
+def update_screen(ai_settings, screen, ship, bullets, aliens, stats, sb, main_menu, menu):
     '''обновляет отрисовку экрана и объектов'''
     # перерисовка экрана
     screen.fill(ai_settings.bg_color)
     screen.blit(ai_settings.bg_image, (0, 0))
-    for bullet in bullets.sprites():
-        bullet.draw_bullet()
-    ship.blitme()
-    aliens.draw(screen)
-    
-    sb.show_score()
+    if stats.game_active:
+        for bullet in bullets.sprites():
+            bullet.draw_bullet()
+        ship.blitme()
+        aliens.draw(screen)
+        
+        sb.show_score()
 
     if not stats.game_active:
-        play_button.draw_button()
+        main_menu.draw_menu()
+
+    if stats.game_PAUSE:
+        menu.draw_menu()
 
     # Отображение последних событий на экране
     pygame.display.flip()

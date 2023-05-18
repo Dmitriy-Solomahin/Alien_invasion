@@ -6,6 +6,8 @@ from ship import Ship
 from game_stats import GameStats
 from button import Button
 from scoreboard import Scoreboard
+from main_menu import MainMenu
+from menu import Menu
 
 
 def run_game():
@@ -16,7 +18,8 @@ def run_game():
     ai_settings = Settings(screen)
     pygame.display.set_caption("Alien Invasion")
     
-    play_button = Button(ai_settings, screen, 'Play')
+    main_menu = MainMenu(screen)
+    menu = Menu(screen)
     
     stats = GameStats(ai_settings)
     sb = Scoreboard(ai_settings, screen, stats)
@@ -26,16 +29,18 @@ def run_game():
     aliens = Group()
 
     gf.create_fleet(ai_settings, screen, aliens, ship)
-
-    # запеск основного процесса игы
+    
+    # запуск основного процесса игы
     while True:
-        gf.check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, play_button)
-        if stats.game_active:
+        gf.check_events(ai_settings, screen, ship, bullets, stats, aliens,
+                        sb, main_menu, menu)
+        if stats.game_active and not stats.game_PAUSE:
             ship.update()
             gf.update_bullets(bullets, aliens, ai_settings,
                                 screen, ship, stats, sb)
             gf.update_alinse(ai_settings, screen, ship, bullets, aliens, stats, sb)
-        gf.update_screen(ai_settings, screen, ship, bullets, aliens, stats, play_button, sb)
+        gf.update_screen(ai_settings, screen, ship, bullets,
+                        aliens, stats, sb, main_menu, menu)
 
 
 run_game()
