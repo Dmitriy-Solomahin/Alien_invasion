@@ -18,6 +18,14 @@ class Settings():
             "textures/bg.jpg")), (self.screen_rect.width, self.screen_rect.height))
         self.bg_color = (106, 90, 205)
 
+        # настройки музыки
+        self.menu_sound = 'sounds/gspr-nightcall.mp3'
+        # self.game_sound = ''
+        self.sound_shooting = 'sounds/warfare-laser-blast_fjdw5t4u.mp3'
+        self.sound_destruction = 'sounds/aa8b64ca38f350.mp3'
+        self.sound_signal = 'sounds/b5ba5fcc1a93887.mp3'
+        self.sound_losing = 'sounds/fail-wha-wha-version.mp3'
+
         # настройки карабля
         self.ship_limit = 3
 

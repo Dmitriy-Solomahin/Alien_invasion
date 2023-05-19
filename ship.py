@@ -16,6 +16,8 @@ class Ship(Sprite):
         self.rect = self.image.get_rect()
         self.screen_rect = screen.get_rect()
 
+        # self.sound_shooting = 'sounds\warfare-laser-blast_fjdw5t4u.mp3'
+
         # Позиционирование корабля по центру снизу экрана
         self.rect.centerx = self.screen_rect.centerx
         self.rect.bottom = self.screen_rect.bottom - 10

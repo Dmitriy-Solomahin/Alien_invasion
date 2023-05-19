@@ -8,6 +8,7 @@ from button import Button
 from scoreboard import Scoreboard
 from main_menu import MainMenu
 from menu import Menu
+from pygame import mixer
 
 
 def run_game():
@@ -30,6 +31,8 @@ def run_game():
 
     gf.create_fleet(ai_settings, screen, aliens, ship)
     
+    mixer.music.load(ai_settings.menu_sound)
+    mixer.music.play(-1)
     # запуск основного процесса игы
     while True:
         gf.check_events(ai_settings, screen, ship, bullets, stats, aliens,

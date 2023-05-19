@@ -1,5 +1,6 @@
 import sys
 import pygame
+from pygame import mixer
 from bullet import Bullet
 from alien import Alien
 from time import sleep
@@ -27,6 +28,7 @@ def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, main_men
     '''отслеживание событий клавиатуры и мыши'''
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            stats.checking_records()
             sys.exit()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and stats.game_active and not stats.game_PAUSE:
             stats.game_PAUSE = True
@@ -44,11 +46,10 @@ def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, main_men
             check_main_menu_button(stats, menu, mouse_x, mouse_y)
             check_resume_button(stats, menu, mouse_x, mouse_y)
 
+
 # РАБОТА С КНОПКАМИ
-
-
 def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, main_menu, menu, mouse_x, mouse_y):
-    '''Запускает новую игру при нажатии кнопки Play'''
+    '''Запускает новую игру при нажатии кнопки Play или кнопки Restart'''
     button_clicked = main_menu.play_button.rect.collidepoint(mouse_x, mouse_y)
     button_pause_clicked = menu.restart_button.rect.collidepoint(
         mouse_x, mouse_y)
@@ -74,13 +75,16 @@ def check_exit_button(stats, menu, mouse_x, mouse_y):
 
 
 def check_main_menu_button(stats, menu, mouse_x, mouse_y):
+    '''Выход в главное меню при нажатии кнопки Main Menu'''
     button_clicked = menu.exit_menu_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and stats.game_PAUSE:
         stats.game_PAUSE = False
         stats.game_active = False
+        stats.checking_records()
 
 
 def check_resume_button(stats, menu, mouse_x, mouse_y):
+    '''Продолжить игру при нажатии кнопки Resume'''
     button_clicked = menu.resume_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and stats.game_PAUSE:
         stats.game_PAUSE = False
@@ -110,18 +114,12 @@ def update_screen(ai_settings, screen, ship, bullets, aliens, stats, sb, main_me
     pygame.display.flip()
 
 
-def check_high_score(stats, sb):
-    '''Проверяет обновление рекорда'''
-    if stats.score > stats.high_score:
-        stats.high_score = stats.score
-        sb.prep_high_score()
-
-
-
 # РАБОТА СО СНАРЯДАМИ
 def fire_bullet(ship, ai_settings, screen, bullets):
     '''выпускать пулю если максимум ещё не достигнут'''
     if len(bullets) < ai_settings.bullets_allowed:
+        bullet_Sound = mixer.Sound(ai_settings.sound_shooting)
+        bullet_Sound.play()
         new_bullet = Bullet(ai_settings, screen, ship)
         bullets.add(new_bullet)
 
@@ -144,6 +142,8 @@ def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship, s
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
     if collisions:
         for aliens in collisions.values():
+            destruction_Sound = mixer.Sound(ai_settings.sound_destruction)
+            destruction_Sound.play()
             stats.score += ai_settings.alien_points * len(aliens)
         sb.prep_score()
         check_high_score(stats, sb)
@@ -154,11 +154,16 @@ def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship, s
 def ship_hit(ai_settings, screen, ship, bullets, aliens, stats, sb):
     '''Обрабатывает столкновение карабля с пришельцем'''
     if stats.ships_left > 0:
+        restart_Sound = mixer.Sound(ai_settings.sound_signal)
+        restart_Sound.play()
         stats.ships_left -= 1
         sb.prep_ships()
         game_restart(ai_settings, screen, ship, bullets, aliens)
     else:
+        game_over_Sound = mixer.Sound(ai_settings.sound_losing)
+        game_over_Sound.play()
         stats.game_active = False
+        stats.checking_records()
         pygame.mouse.set_visible(True)
 
 
@@ -259,4 +264,11 @@ def game_restart(ai_settings, screen, ship, bullets, aliens):
     create_fleet(ai_settings, screen, aliens, ship)
     ship.center_ship()
     # пауза
-    sleep(0.5)
+    sleep(1)
+
+
+def check_high_score(stats, sb):
+    '''Проверяет обновление рекорда'''
+    if stats.score > stats.now_high_score:
+        stats.now_high_score = stats.score
+        sb.prep_high_score()

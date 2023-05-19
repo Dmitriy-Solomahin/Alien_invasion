@@ -41,7 +41,7 @@ class Scoreboard():
 
     def prep_high_score(self):
         '''преобразует максимальный счёт в графический вид'''
-        high_score_str = Scoreboard.formating_score(self.stats.high_score)
+        high_score_str = Scoreboard.formating_score(self.stats.now_high_score)
         self.high_score_image = self.font.render(
             high_score_str, True, self.text_color, None)
         
@@ -61,6 +61,7 @@ class Scoreboard():
 
 
     def prep_ships(self):
+        '''Выводит количество запасных караблей'''
         self.ships = Group()
         for ship_number in range(self.stats.ships_left):
             ship = Ship(self.ai_settings, self.screen, (32,32))
