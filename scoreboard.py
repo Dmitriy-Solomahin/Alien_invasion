@@ -76,3 +76,27 @@ class Scoreboard():
         self.screen.blit(self.high_score_image, self.high_score_rect)
         self.screen.blit(self.level_image, self.level_rect)
         self.ships.draw(self.screen)
+
+
+    def prep_records_table(self):
+        '''Преобразует таблицы рекордов в графический вид'''
+        self.records_image = []
+        self.records_image_rect = []
+        i = 0
+        for record in self.stats.formating_record():
+            image = self.font.render(record, True, self.text_color, None)
+            self.records_image.append(image)
+            coordinat = image.get_rect()
+            coordinat.center = (self.screen_rect.center[0], self.screen_rect.center[1] -100 + 50*i)
+            self.records_image_rect.append(coordinat)
+            i +=1
+
+
+    def show_records_table(self):
+        '''Вывод таблицы рекордов на экран'''
+        self.prep_records_table()
+        self.screen.blit(self.records_image[0], self.records_image_rect[0])
+        self.screen.blit(self.records_image[1], self.records_image_rect[1])
+        self.screen.blit(self.records_image[2], self.records_image_rect[2])
+        self.screen.blit(self.records_image[3], self.records_image_rect[3])
+        self.screen.blit(self.records_image[4], self.records_image_rect[4])

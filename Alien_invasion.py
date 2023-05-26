@@ -15,22 +15,22 @@ def run_game():
     # инициализация игры и создание экрана
     pygame.init()
     screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
-    
+
     ai_settings = Settings(screen)
     pygame.display.set_caption("Alien Invasion")
-    
-    main_menu = MainMenu(screen)
-    menu = Menu(screen)
-    
+
     stats = GameStats(ai_settings)
     sb = Scoreboard(ai_settings, screen, stats)
+
+    main_menu = MainMenu(screen, sb)
+    menu = Menu(screen)
 
     ship = Ship(ai_settings, screen, (64,64))
     bullets = Group()
     aliens = Group()
 
     gf.create_fleet(ai_settings, screen, aliens, ship)
-    
+
     mixer.music.load(ai_settings.menu_sound)
     mixer.music.play(-1)
     # запуск основного процесса игы

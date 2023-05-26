@@ -5,6 +5,7 @@ class GameStats():
         self.ai_settings = ai_settings
         
         self.game_active = False
+        self.records_menu = False
         self.game_PAUSE = False
         
         self.score = 0
@@ -44,3 +45,11 @@ class GameStats():
         data = ';'.join(s)
         with open(self.settings_fille, 'w', encoding='UTF-8') as file:
             file.write(data)
+
+
+    def formating_record(self):
+        '''Преобразует список рекордов в таблицу'''
+        lines = []
+        for i in range(len(self.high_score)):
+            lines.append(str(i+1) + ': ' + str(self.high_score[i]))
+        return lines

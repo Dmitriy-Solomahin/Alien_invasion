@@ -45,6 +45,8 @@ def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, main_men
             check_exit_button(stats, main_menu, mouse_x, mouse_y)
             check_main_menu_button(stats, menu, mouse_x, mouse_y)
             check_resume_button(stats, menu, mouse_x, mouse_y)
+            check_back_button(stats, main_menu, mouse_x, mouse_y)
+            check_records_button(stats, main_menu, mouse_x, mouse_y)
 
 
 # РАБОТА С КНОПКАМИ
@@ -53,7 +55,7 @@ def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, mai
     button_clicked = main_menu.play_button.rect.collidepoint(mouse_x, mouse_y)
     button_pause_clicked = menu.restart_button.rect.collidepoint(
         mouse_x, mouse_y)
-    if (button_clicked and not stats.game_active) or (button_pause_clicked and stats.game_PAUSE):
+    if (button_clicked and not stats.game_active and not stats.records_menu) or (button_pause_clicked and stats.game_PAUSE):
         ai_settings.initialize_dynamic_settings() # сброс игровой статистики
         pygame.mouse.set_visible(False)  # скрывает указатель мыши
         stats.reset_stats()
@@ -67,11 +69,26 @@ def check_play_button(ai_settings, screen, ship, bullets, stats, aliens, sb, mai
         game_restart(ai_settings, screen, ship, bullets, aliens)
 
 
-def check_exit_button(stats, menu, mouse_x, mouse_y):
+def check_records_button(stats, main_menu, mouse_x, mouse_y):
+    '''Открывает таблицу рекордов если нажата кнопка Records'''
+    button_clicked = main_menu.records_button.rect.collidepoint(
+        mouse_x, mouse_y)
+    if button_clicked and not stats.game_active and not stats.records_menu:
+        stats.records_menu = True
+
+
+def check_exit_button(stats, main_menu, mouse_x, mouse_y):
     '''Выход из игры если нажата кнопка Exit'''
-    button_clicked = menu.exit_button.rect.collidepoint(mouse_x, mouse_y)
-    if button_clicked and not stats.game_active:
+    button_clicked = main_menu.exit_button.rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked and not stats.game_active and not stats.records_menu:
         sys.exit()
+
+
+def check_back_button(stats, main_menu, mouse_x, mouse_y):
+    '''Возвращается в главное меню после нажатия кнопки назад'''
+    button_clicked = main_menu.back_button.rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked and not stats.game_active and stats.records_menu:
+        stats.records_menu = False
 
 
 def check_main_menu_button(stats, menu, mouse_x, mouse_y):
@@ -105,7 +122,10 @@ def update_screen(ai_settings, screen, ship, bullets, aliens, stats, sb, main_me
         sb.show_score()
 
     if not stats.game_active:
-        main_menu.draw_menu()
+        if stats.records_menu:
+            main_menu.draw_records()
+        else:
+            main_menu.draw_menu()
 
     if stats.game_PAUSE:
         menu.draw_menu()
