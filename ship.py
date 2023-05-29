@@ -12,11 +12,9 @@ class Ship(Sprite):
 
         # создание внешнего вида карабля и вычесление размеров экрана и карабля
         self.image = pygame.transform.scale((pygame.image.load(
-            'textures/rocket2_128p.png')), self.size)
+            'textures/ship/rocket2_128p.png')), self.size)
         self.rect = self.image.get_rect()
         self.screen_rect = screen.get_rect()
-
-        # self.sound_shooting = 'sounds\warfare-laser-blast_fjdw5t4u.mp3'
 
         # Позиционирование корабля по центру снизу экрана
         self.rect.centerx = self.screen_rect.centerx

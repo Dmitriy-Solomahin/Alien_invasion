@@ -14,7 +14,7 @@ from pygame import mixer
 def run_game():
     # инициализация игры и создание экрана
     pygame.init()
-    screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
     ai_settings = Settings(screen)
     pygame.display.set_caption("Alien Invasion")
@@ -25,7 +25,7 @@ def run_game():
     main_menu = MainMenu(screen, sb)
     menu = Menu(screen)
 
-    ship = Ship(ai_settings, screen, (64,64))
+    ship = Ship(ai_settings, screen, (64, 64))
     bullets = Group()
     aliens = Group()
 
@@ -37,11 +37,12 @@ def run_game():
     while True:
         gf.check_events(ai_settings, screen, ship, bullets, stats, aliens,
                         sb, main_menu, menu)
-        if stats.game_active and not stats.game_PAUSE:
+        if stats.game_active and not stats.game_PAUSE and not stats.buff_pause:
             ship.update()
             gf.update_bullets(bullets, aliens, ai_settings,
-                                screen, ship, stats, sb)
-            gf.update_alinse(ai_settings, screen, ship, bullets, aliens, stats, sb)
+                            screen, ship, stats, sb)
+            gf.update_alinse(ai_settings, screen, ship,
+                            bullets, aliens, stats, sb)
         gf.update_screen(ai_settings, screen, ship, bullets,
                         aliens, stats, sb, main_menu, menu)
 

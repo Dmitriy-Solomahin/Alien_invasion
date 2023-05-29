@@ -4,7 +4,7 @@ from pygame import mixer
 from bullet import Bullet
 from alien import Alien
 from time import sleep
-
+from buffs import Buffs
 
 # РАБОТА С ВВЕДЁННЫМИ ДАННЫМИ
 def check_events_k(event, ship, ai_settings, screen, bullets):
@@ -47,6 +47,8 @@ def check_events(ai_settings, screen, ship, bullets, stats, aliens, sb, main_men
             check_resume_button(stats, menu, mouse_x, mouse_y)
             check_back_button(stats, main_menu, mouse_x, mouse_y)
             check_records_button(stats, main_menu, mouse_x, mouse_y)
+            if stats.buff_pause:
+                check_buff_clicked(stats, sb, mouse_x, mouse_y)
 
 
 # РАБОТА С КНОПКАМИ
@@ -107,6 +109,20 @@ def check_resume_button(stats, menu, mouse_x, mouse_y):
         stats.game_PAUSE = False
 
 
+def check_buff_clicked(stats, sb, mouse_x, mouse_y):
+    '''Проверка нажатия на бафф и применение его'''
+    button_clicked_1 = sb.buff_1.buff_image_rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked_1 :
+        sb.buff_1.use_buff()
+        pygame.mouse.set_visible(False)
+        stats.buff_pause = False
+    button_clicked_2 = sb.buff_2.buff_image_rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked_2 :
+        sb.buff_2.use_buff()
+        pygame.mouse.set_visible(False)
+        stats.buff_pause = False
+
+
 # ФУНКЦИИ ОТРИСОВКИ
 def update_screen(ai_settings, screen, ship, bullets, aliens, stats, sb, main_menu, menu):
     '''обновляет отрисовку экрана и объектов'''
@@ -126,6 +142,9 @@ def update_screen(ai_settings, screen, ship, bullets, aliens, stats, sb, main_me
             main_menu.draw_records()
         else:
             main_menu.draw_menu()
+    
+    if stats.buff_pause:
+        sb.show_buffs()
 
     if stats.game_PAUSE:
         menu.draw_menu()
@@ -140,8 +159,12 @@ def fire_bullet(ship, ai_settings, screen, bullets):
     if len(bullets) < ai_settings.bullets_allowed:
         bullet_Sound = mixer.Sound(ai_settings.sound_shooting)
         bullet_Sound.play()
-        new_bullet = Bullet(ai_settings, screen, ship)
-        bullets.add(new_bullet)
+        for i in range(ai_settings.level_gun):
+            if ai_settings.level_gun == 2:
+                new_bullet = Bullet(ai_settings, screen, ship, i+2)
+            else:
+                new_bullet = Bullet(ai_settings, screen, ship, i+1)
+            bullets.add(new_bullet)
 
 def update_bullets(bullets, aliens, ai_settings, screen, ship, stats, sb):
     '''обновление позиции пуль и удаление старых'''
@@ -159,12 +182,16 @@ def check_bullets_alien_collisions(bullets, aliens, ai_settings, screen, ship, s
     '''Обработка колизий пуль с пришельцами'''
     # Проверка попадания в пришельцев
     # При обнаружении попадания удалить пулю и пришельца
-    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    collisions = pygame.sprite.groupcollide(bullets, aliens, False, True)
     if collisions:
-        for aliens in collisions.values():
+        for bullet, alien in collisions.items():
+            if bullet.bullet_heals == 1:
+                bullets.remove(bullet)
+            else:
+                bullet.bullet_heals -= 1
             destruction_Sound = mixer.Sound(ai_settings.sound_destruction)
             destruction_Sound.play()
-            stats.score += ai_settings.alien_points * len(aliens)
+            stats.score += ai_settings.alien_points #* len(aliens) зачем?
         sb.prep_score()
         check_high_score(stats, sb)
     if len(aliens) == 0:
@@ -233,6 +260,12 @@ def filling_fleet(ai_settings, screen, aliens, ship, bullets, stats, sb):
     ai_settings.increase_speed()
     # увеличивает уровень
     stats.level += 1
+    # вызов бафов каждый 5й уровень
+    if stats.level % 5 == 0:
+        choosing_buffs(ai_settings, screen, stats, sb)
+        stats.buff_pause = True
+        pygame.mouse.set_visible(True)
+        
     sb.prep_level()
     
     create_fleet(ai_settings, screen, aliens, ship)
@@ -292,3 +325,14 @@ def check_high_score(stats, sb):
     if stats.score > stats.now_high_score:
         stats.now_high_score = stats.score
         sb.prep_high_score()
+
+
+def choosing_buffs(ai_settings, screen, stats, sb):
+    '''создание бафов'''
+    buff_1 = Buffs(ai_settings, screen, stats, sb)
+    while True:
+        buff_2 = Buffs(ai_settings, screen, stats, sb)
+        if not buff_1 == buff_2:
+            break
+    sb.buff_1 = buff_1
+    sb.buff_2 = buff_2

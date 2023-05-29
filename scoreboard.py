@@ -10,6 +10,10 @@ class Scoreboard():
         self.screen_rect = screen.get_rect()
         self.ai_settings = ai_settings
         self.stats = stats
+        
+        # пустышки под бафы
+        self.buff_1 = []
+        self.buff_2 = []
 
         # настройки шрифта
         self.font_size = 48
@@ -100,3 +104,27 @@ class Scoreboard():
         self.screen.blit(self.records_image[2], self.records_image_rect[2])
         self.screen.blit(self.records_image[3], self.records_image_rect[3])
         self.screen.blit(self.records_image[4], self.records_image_rect[4])
+
+
+    def prep_buffs(self):
+        '''Преобразует бафы в графический вид'''
+        self.buff_1_text_image = self.font.render(
+            self.buff_1.buff_text, True, self.text_color, None)
+        self.buff_1_text_rect = self.buff_1_text_image.get_rect()
+        self.buff_1_text_rect.center = (self.screen_rect.center[0] - 150, self.screen_rect.center[1] + 100)
+        self.buff_1.buff_image_rect.center = (self.screen_rect.center[0] - 150, self.screen_rect.center[1])
+        
+        self.buff_2_text_image = self.font.render(
+            self.buff_1.buff_text, True, self.text_color, None)
+        self.buff_2_text_rect = self.buff_2_text_image.get_rect()
+        self.buff_2_text_rect.center = (self.screen_rect.center[0] + 150, self.screen_rect.center[1] + 100)
+        self.buff_2.buff_image_rect.center = (self.screen_rect.center[0] + 150, self.screen_rect.center[1])
+
+
+    def show_buffs(self):
+        '''Вывод бафы на экран'''
+        self.prep_buffs()
+        self.screen.blit(self.buff_1_text_image, self.buff_1_text_rect)
+        self.screen.blit(self.buff_2_text_image, self.buff_2_text_rect)
+        self.screen.blit(self.buff_1.buff_image, self.buff_1.buff_image_rect)
+        self.screen.blit(self.buff_2.buff_image, self.buff_2.buff_image_rect)

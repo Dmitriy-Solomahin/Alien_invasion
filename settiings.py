@@ -15,7 +15,7 @@ class Settings():
         self.active_screen_w = self.screen_width * self.width_multiplier
         self.active_screen_h = self.screen_height * self.height_multiplier
         self.bg_image = pygame.transform.scale((pygame.image.load(
-            "textures/bg.jpg")), (self.screen_rect.width, self.screen_rect.height))
+            "textures/bg/bg.jpg")), (self.screen_rect.width, self.screen_rect.height))
         self.bg_color = (106, 90, 205)
 
         # настройки музыки
@@ -26,14 +26,9 @@ class Settings():
         self.sound_signal = 'sounds/b5ba5fcc1a93887.mp3'
         self.sound_losing = 'sounds/fail-wha-wha-version.mp3'
 
-        # настройки карабля
-        self.ship_limit = 3
-
         # настройки пули
-        self.bullet_wigth = 3
-        self.bullet_height = 15
         self.bullet_color = 255, 250, 205
-        self.bullets_allowed = 5
+
 
         # настройки пришельцев
         self.fleet_drop_speed = 10
@@ -52,6 +47,17 @@ class Settings():
         self.bullet_speed_factor = 2
         self.alien_speed_factor = 1
         self.fleet_direction = 1 # направление движения флота 1 вправо -1 влево
+
+        # настройки карабля
+        self.ship_limit = 3
+        self.level_gun = 1
+        
+        
+        # настройки пули
+        self.level_bullet = 1
+        self.bullet_wigth = 3000
+        self.bullet_height = 15
+        self.bullets_allowed = 5
         
         # подсчёт очков
         self.alien_points = 10

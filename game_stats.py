@@ -7,6 +7,7 @@ class GameStats():
         self.game_active = False
         self.records_menu = False
         self.game_PAUSE = False
+        self.buff_pause = False
         
         self.score = 0
         self.settings_fille = 'program\settings_fille.txt'
@@ -18,7 +19,6 @@ class GameStats():
     def reset_stats(self):
         '''Статистика меняющаяся в ходе игры'''
         self.ships_left = self.ai_settings.ship_limit
-        # self.checking_records()
         self.score = 0
         self.level = 1
 
